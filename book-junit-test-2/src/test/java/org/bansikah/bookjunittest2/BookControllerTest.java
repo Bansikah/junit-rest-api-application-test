@@ -11,8 +11,10 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,10 +24,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -83,4 +81,38 @@ public class BookControllerTest {
         assertEquals("Mastering habits", book1.getSummary());
     }
 
+    @Test
+    public void createBook_success() throws Exception {
+        Book book = new Book(1L,1L, "Atomic Habits", "Mastering habits", 5 );
+        String json = objectWriter.writeValueAsString(book);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/books")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isCreated());
+        Mockito.verify(bookRepository, Mockito.times(1)).save(book);
+        Mockito.verifyNoMoreInteractions(bookRepository);
+
+    }
+
+    @Test
+    public void createBook2_success() throws Exception {
+        Book record = Book.builder()
+                .id(1L)
+                .bookId(1L)
+                .name("Atomic Habists")
+                .summary("Mastering habits")
+                .rating(5)
+                .build();
+
+        Mockito.when(bookRepository.save(record)).thenReturn(record);
+
+        String content = objectMapper.writeValueAsString(record);
+
+        ResultActions perform = mockMvc.perform(MockMvcRequestBuilders.post("/books")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(content));
+        perform.andExpect(status().isOk());
+    }
 }
