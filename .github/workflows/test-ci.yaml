@@ -1,0 +1,15 @@
+name: Build and Test Book Project
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run Book Tests
+        uses: ./ci-books.yaml@v1  # Include the nested workflow with version (optional)
+
