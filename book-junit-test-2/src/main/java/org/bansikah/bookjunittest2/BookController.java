@@ -48,6 +48,12 @@ public class BookController {
     }
 
     // TODO : write delete method using TDD method
-
+@DeleteMapping(value = "{bookId}")
+    public void deleteBookById(@PathVariable(value = "bookId") Long bookId) throws Exception{
+        if(!bookRepository.findById(bookId).isPresent()){
+            throw new ChangeSetPersister.NotFoundException();
+        }
+        bookRepository.deleteById(bookId);
+    }
 }
 

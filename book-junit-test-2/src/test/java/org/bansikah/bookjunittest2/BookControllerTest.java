@@ -23,8 +23,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+
+
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
@@ -112,11 +115,62 @@ public class BookControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(content));
-        perform.andExpect(status().isOk());
+       // perform.andExpect(status().isOk());
+
+        perform.andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").exists()) // Check if "id" field exists
+                .andExpect(jsonPath("$.name").exists());
     }
 
     @Test
     public void updateBook_success() throws Exception {
+    Book updateBookRecord = Book.builder()
+            .bookId(1L)
+            .name("Updated book")
+            .summary("Updated summary")
+            .rating(1)
+            .build();
 
+    Mockito.when(bookRepository.findById(book1.getBookId())).thenReturn(Optional.of(book1));
+    Mockito.when(bookRepository.save(updateBookRecord)).thenReturn(updateBookRecord);
+
+    String updatedetContent = objectWriter.writeValueAsString(updateBookRecord);
+
+        ResultActions perform = mockMvc.perform(MockMvcRequestBuilders.post("/books")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(updatedetContent));
+
+
+        perform.andExpect(status().isOk())
+                .andExpect(jsonPath("$.bookId").exists()) // Check if "id" field exists
+                .andExpect(jsonPath("$.bookId").isNotEmpty()) // Check if "id" is not null
+                .andExpect(jsonPath("$.name").value("Updated book"));
+    }
+
+    @Test
+    public void deleteBookById_success() throws Exception {
+        // Define the ID of the book to be found
+        Long expectedId = 1L;
+        when(bookRepository.findById(expectedId)).thenReturn(Optional.of(book1));
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/books/{id}", expectedId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+        Mockito.verify(bookRepository, Mockito.times(1)).deleteById(expectedId);
+        Mockito.verifyNoMoreInteractions(bookRepository);
+    }
+
+    @Test
+    public void deleteBookById_notFound() throws Exception {
+        // Define the ID of the book to be found
+        Long expectedId = 1L;
+        when(bookRepository.findById(expectedId)).thenReturn(Optional.empty());
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/books/{id}", expectedId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+        Mockito.verify(bookRepository, Mockito.times(0)).deleteById(expectedId);
+        Mockito.verifyNoMoreInteractions(bookRepository);
     }
 }
