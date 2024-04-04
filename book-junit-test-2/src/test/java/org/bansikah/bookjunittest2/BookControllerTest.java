@@ -1,6 +1,6 @@
 package org.bansikah.bookjunittest2;
 
-import net.minidev.json.JSONObject;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -11,7 +11,6 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -114,5 +113,10 @@ public class BookControllerTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(content));
         perform.andExpect(status().isOk());
+    }
+
+    @Test
+    public void updateBook_success() throws Exception {
+
     }
 }
